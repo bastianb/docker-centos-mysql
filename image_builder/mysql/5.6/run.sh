@@ -72,7 +72,12 @@ ImportSql()
 
 	for FILE in ${STARTUP_SQL}; do
 	   echo "=> Importing SQL file ${FILE}"
-	   mysql -uroot < "${FILE}"
+           if [ -z "${USE_FORCE}" ]; then
+               MYSQL_OPTIONS=""
+           else
+               MYSQL_OPTIONS="--force"
+           fi
+	   mysql -uroot ${MYSQL_OPTIONS} ${ON_CREATE_DB} < "${FILE}"
 	done
 
 	mysqladmin -uroot shutdown
@@ -95,12 +100,12 @@ if [[ ! -d $VOLUME_HOME/mysql ]]; then
         cp /etc/my.cnf /usr/share/mysql/my-default.cnf
     fi
     mysql_install_db > /dev/null 2>&1
-    
+
     # !important to avoird permission error,
     # Set privileges to mysql folder
     echo "=> Setting file permissions"
     chown -R mysql:root /var/lib/mysql
-    
+
     echo "=> Done!"
     echo "=> Creating admin user ..."
     CreateMySQLUser
